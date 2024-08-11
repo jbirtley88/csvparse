@@ -2,12 +2,7 @@ package csvparse
 
 import (
 	"encoding/csv"
-	"errors"
 	"io"
-)
-
-var (
-	ErrHeaderCountDoesNotMatchRowCount = errors.New("header and row count must be identical")
 )
 
 // DictReader allows reading from csv.Reader for CSV files that have a header row.
