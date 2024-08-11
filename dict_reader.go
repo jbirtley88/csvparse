@@ -10,6 +10,8 @@ type DictReader struct {
 	headerRow []string
 }
 
+// Read returns the next line from the *csv.Reader as a map.
+// Just like csv.Reader.Read() it will return an io.EOF if no more lines are found.
 func (r *DictReader) Read() (map[string]string, error) {
 	var err error
 
@@ -36,6 +38,7 @@ func (r *DictReader) Read() (map[string]string, error) {
 	return dict, nil
 }
 
+// Read returns the next line from the *csv.Reader as a slice of maps.
 func (r *DictReader) ReadAll() ([]map[string]string, error) {
 	records := make([]map[string]string, 0)
 
