@@ -2,17 +2,37 @@ package csvparse
 
 import (
 	"encoding/csv"
+	"errors"
 	"io"
 )
 
+var (
+	ErrHeaderCountDoesNotMatchRowCount = errors.New("header and row count must be identical")
+)
+
+// DictReader allows reading from csv.Reader for CSV files that have a header row.
+// It will map each row to a map[string]string using the headings as the map keys.
 type DictReader struct {
 	reader    *csv.Reader
 	headerRow []string
 }
 
-// Read returns the next line from the *csv.Reader as a map.
-// Just like csv.Reader.Read() it will return an io.EOF if no more lines are found.
-func (r *DictReader) Read() (map[string]string, error) {
+func mapRow(headers []string, row []string) (map[string]string, error) {
+	if len(headers) != len(row) {
+		return nil, ErrHeaderCountDoesNotMatchRowCount
+	}
+
+	dict := map[string]string{}
+
+	for i, col := range headers {
+		dict[col] = row[i]
+	}
+
+	return dict, nil
+}
+
+// Headers returns the header row.
+func (r *DictReader) Headers() ([]string, error) {
 	var err error
 
 	if r.headerRow == nil {
@@ -23,16 +43,28 @@ func (r *DictReader) Read() (map[string]string, error) {
 		}
 	}
 
+	return r.headerRow, nil
+}
+
+// Read returns the next line from the *csv.Reader as a map.
+// Just like csv.Reader.Read() it will return an io.EOF if no more lines are found.
+func (r *DictReader) Read() (map[string]string, error) {
+	headers, err := r.Headers()
+
+	if err != nil {
+		return nil, err
+	}
+
 	row, err := r.reader.Read()
 
 	if err != nil {
 		return nil, err
 	}
 
-	dict := map[string]string{}
+	dict, err := mapRow(headers, row)
 
-	for i, col := range r.headerRow {
-		dict[col] = row[i]
+	if err != nil {
+		return nil, err
 	}
 
 	return dict, nil
@@ -40,10 +72,16 @@ func (r *DictReader) Read() (map[string]string, error) {
 
 // Read returns the next line from the *csv.Reader as a slice of maps.
 func (r *DictReader) ReadAll() ([]map[string]string, error) {
+	headers, err := r.Headers()
+
+	if err != nil {
+		return nil, err
+	}
+
 	records := make([]map[string]string, 0)
 
 	for {
-		record, err := r.Read()
+		row, err := r.reader.Read()
 
 		if err == io.EOF {
 			break
@@ -53,7 +91,13 @@ func (r *DictReader) ReadAll() ([]map[string]string, error) {
 			return nil, err
 		}
 
-		records = append(records, record)
+		dict, err := mapRow(headers, row)
+
+		if err != nil {
+			return nil, err
+		}
+
+		records = append(records, dict)
 	}
 
 	return records, nil

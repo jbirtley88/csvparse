@@ -10,6 +10,42 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestDictReader_Headers(t *testing.T) {
+	in := `first_name,last_name,username
+"Rob","Pike",rob
+Ken,Thompson,ken
+"Robert","Griesemer","gri"
+`
+	r := csv.NewReader(strings.NewReader(in))
+
+	dr := csvreader.NewDictReader(r)
+
+	headers, err := dr.Headers()
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, "first_name", headers[0])
+	assert.Equal(t, "last_name", headers[1])
+	assert.Equal(t, "username", headers[2])
+}
+
+func ExampleDictReader_Headers() {
+	in := `first_name,last_name,username
+"Rob","Pike",rob
+Ken,Thompson,ken
+"Robert","Griesemer","gri"
+`
+	r := csv.NewReader(strings.NewReader(in))
+
+	dr := csvreader.NewDictReader(r)
+
+	headers, _ := dr.Headers()
+
+	fmt.Println(headers)
+
+	// Output: [first_name last_name username]
+}
+
 func TestDictReader_Read(t *testing.T) {
 	in := `first_name,last_name,username
 "Rob","Pike",rob
