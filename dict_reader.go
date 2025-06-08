@@ -12,12 +12,12 @@ type DictReader struct {
 	headerRow []string
 }
 
-func mapRow(headers []string, row []string) (map[string]string, error) {
+func mapRow(headers []string, row []string) (map[string]any, error) {
 	if len(headers) != len(row) {
 		return nil, ErrHeaderCountDoesNotMatchRowCount
 	}
 
-	dict := map[string]string{}
+	dict := map[string]any{}
 
 	for i, col := range headers {
 		dict[col] = row[i]
@@ -43,7 +43,7 @@ func (r *DictReader) Headers() ([]string, error) {
 
 // Read returns the next line from the *csv.Reader as a map.
 // Just like csv.Reader.Read() it will return an io.EOF if no more lines are found.
-func (r *DictReader) Read() (map[string]string, error) {
+func (r *DictReader) Read() (map[string]any, error) {
 	headers, err := r.Headers()
 
 	if err != nil {
@@ -66,14 +66,14 @@ func (r *DictReader) Read() (map[string]string, error) {
 }
 
 // Read returns the next line from the *csv.Reader as a slice of maps.
-func (r *DictReader) ReadAll() ([]map[string]string, error) {
+func (r *DictReader) ReadAll() ([]map[string]any, error) {
 	headers, err := r.Headers()
 
 	if err != nil {
 		return nil, err
 	}
 
-	records := make([]map[string]string, 0)
+	records := make([]map[string]any, 0)
 
 	for {
 		row, err := r.reader.Read()
